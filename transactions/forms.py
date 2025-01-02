@@ -1,6 +1,6 @@
 from django import forms
 from .models import TransactionModel
-
+from django.contrib.auth.models import User
 class TransactionForm(forms.ModelForm):
     class Meta:
         model=TransactionModel
@@ -37,6 +37,7 @@ class WithdrawForm(TransactionForm):
         max_withdraw_amount=20000
         balance=account.balance
         amount=self.cleaned_data.get('amount')
+        
         if amount<min_withdraw_amount:
             raise forms.ValidationError(
                 f'You can withdraw at least {min_withdraw_amount}$ '
@@ -59,5 +60,41 @@ class LoanRequestForm(TransactionForm):
     def clean_amount(self):
         amount=self.cleaned_data.get('amount')
         return amount
+    
+class MoneyTransferForm(forms.ModelForm):
+    class Meta:
+        model=TransactionModel
+        fields=['account','amount','transaction_type']
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.fields['transaction_type'].disabled=True #Field will stay disabled
+        self.fields['transaction_type'].widget=forms.HiddenInput() #Will be hidden from user
+        
+    def save(self,commit=True):
+        #account,amount,balance_after_trxn,transaction_type
+        recipient_account=self.cleaned_data.get('account')
+        # recipient_obj=User.objects.get(pk=recipient_account)
+        amount=self.cleaned_data.get('amount')
+        transaction_type=self.cleaned_data.get('transaction_type')
+        balance_after_trxn_sender=self.request.user.balance
+        balance_after_trxn_recipient=recipient_account.balance
+        TransactionModel.objects.create(
+            account=self.request.user,
+            amount=amount,
+            balance_after_trxn=balance_after_trxn_sender,
+            transaction_type=transaction_type
+        )
+        TransactionModel.objects.create(
+            account=recipient_account,
+            amount=amount,
+            balance_after_trxn=balance_after_trxn_recipient,
+            transaction_type=transaction_type
+        )    
+
+
+
+
+
         
         

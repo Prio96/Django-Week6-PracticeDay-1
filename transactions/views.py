@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.views.generic import CreateView, ListView
 from django.views import View
-from .models import TransactionModel,DEPOSIT,WITHDRAWAL,LOAN,LOAN_PAID
+from .models import TransactionModel,DEPOSIT,WITHDRAWAL,LOAN,LOAN_PAID,MONEY_TRANSFER
 from .forms import DepositForm,WithdrawForm,LoanRequestForm
 from django.http import HttpResponse
 from datetime import *
@@ -142,6 +142,33 @@ class LoanListView(LoginRequiredMixin, ListView):
         queryset=TransactionModel.objects.filter(account=user_account,transaction_type=LOAN)
         return queryset
 
+class MoneyTransferView(LoginRequiredMixin, CreateView):
+    model=TransactionModel
+    template_name="transactions/transaction_form.html"
+    title='Transfer Money'
+    success_url=reverse_lazy('Transaction Report')
+
+    def get_initial(self):
+        initial={'transaction_type':MONEY_TRANSFER}
+        return initial
+    
+    def form_valid(self, form):
+        amount=form.cleaned_data.get('amount')
+        recipient_account=form.cleaned_data.get('account')
+        sender_account=self.request.user.account
+        sender_account.balance-=amount
+        recipient_account.balance+=amount
+        sender_account.save(
+            update_fields=['balance']
+        )
+        recipient_account.save(
+            update_fields=['balance']
+        )
+        messages.success(self.request, f"{amount}$ has been transferred from your account to {recipient_account.username}successfully")
+        return super().form_valid(form)
+    
+
+        
                 
             
     

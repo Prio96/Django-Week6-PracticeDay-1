@@ -5,11 +5,13 @@ DEPOSIT=1
 WITHDRAWAL=2
 LOAN=3
 LOAN_PAID=4
+MONEY_TRANSFER=5
 TRXN_TYPE=(
     (DEPOSIT, 'Deposit'),
     (WITHDRAWAL, 'Withdrawal'),
     (LOAN, 'Loan'),
-    (LOAN_PAID, 'Loan Repayment')
+    (LOAN_PAID, 'Loan Repayment'),
+    (MONEY_TRANSFER,'Money Transfer')
 )
 
 class TransactionModel(models.Model):
@@ -19,6 +21,7 @@ class TransactionModel(models.Model):
     transaction_type=models.IntegerField(choices=TRXN_TYPE, null=True)
     timestamp=models.DateTimeField(auto_now_add=True)
     loan_approval=models.BooleanField(default=False)
+    is_bankrupt=models.BooleanField(default=False)
     
     class Meta:
         ordering=['timestamp']
