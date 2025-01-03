@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.views.generic import CreateView, ListView
 from django.views import View
 from .models import TransactionModel,DEPOSIT,WITHDRAWAL,LOAN,LOAN_PAID,MONEY_TRANSFER
-from .forms import DepositForm,WithdrawForm,LoanRequestForm
+from .forms import DepositForm,WithdrawForm,LoanRequestForm,MoneyTransferForm
 from django.http import HttpResponse
 from datetime import *
 from django.db.models import Sum
@@ -145,6 +145,7 @@ class LoanListView(LoginRequiredMixin, ListView):
 class MoneyTransferView(LoginRequiredMixin, CreateView):
     model=TransactionModel
     template_name="transactions/transaction_form.html"
+    form_class=MoneyTransferForm
     title='Transfer Money'
     success_url=reverse_lazy('Transaction Report')
 
@@ -152,21 +153,26 @@ class MoneyTransferView(LoginRequiredMixin, CreateView):
         initial={'transaction_type':MONEY_TRANSFER}
         return initial
     
-    def form_valid(self, form):
-        amount=form.cleaned_data.get('amount')
-        recipient_account=form.cleaned_data.get('account')
-        sender_account=self.request.user.account
-        sender_account.balance-=amount
-        recipient_account.balance+=amount
-        sender_account.save(
-            update_fields=['balance']
-        )
-        recipient_account.save(
-            update_fields=['balance']
-        )
-        messages.success(self.request, f"{amount}$ has been transferred from your account to {recipient_account.username}successfully")
-        return super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context= super().get_context_data(**kwargs)
+        context.update({
+            'title' : self.title
+        })
+        return context
     
+    def get_form_kwargs(self):
+        kwargs=super().get_form_kwargs()
+        kwargs['request']=self.request
+        return kwargs
+    
+    def form_valid(self, form):
+        try:
+            # self.object=form.save()
+            messages.success(self.request,f"${form.cleaned_data.get('amount')} has been transferred successfully to {form.cleaned_data.get('account_number')}.")
+            return super().form_valid(form)
+        except ValueError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
 
         
                 

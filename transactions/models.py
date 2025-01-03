@@ -11,7 +11,7 @@ TRXN_TYPE=(
     (WITHDRAWAL, 'Withdrawal'),
     (LOAN, 'Loan'),
     (LOAN_PAID, 'Loan Repayment'),
-    (MONEY_TRANSFER,'Money Transfer')
+    (MONEY_TRANSFER,'Transfer Money')
 )
 
 class TransactionModel(models.Model):
@@ -21,7 +21,6 @@ class TransactionModel(models.Model):
     transaction_type=models.IntegerField(choices=TRXN_TYPE, null=True)
     timestamp=models.DateTimeField(auto_now_add=True)
     loan_approval=models.BooleanField(default=False)
-    is_bankrupt=models.BooleanField(default=False)
     
     class Meta:
         ordering=['timestamp']
