@@ -89,15 +89,17 @@ class MoneyTransferForm(forms.ModelForm):
         except UserBankAccount.DoesNotExist:
             raise forms.ValidationError("The account number does not exist")
         return account
-        
+    def clean_amount(self):
+        amount=self.cleaned_data.get('amount')
+        if self.request.user.account.balance<amount:
+            raise forms.ValidationError("Insufficient balance")
+        return amount
     def save(self,commit=True):
         #account,amount,balance_after_trxn,transaction_type
         sender_account=self.request.user.account
         recipient_account=self.cleaned_data.get('account_number')
         # recipient_obj=User.objects.get(pk=recipient_account)
         amount=self.cleaned_data.get('amount')
-        if sender_account.balance < amount:
-            raise ValueError("Insufficient balance")
         transaction_type=self.cleaned_data.get('transaction_type')
         sender_account.balance-=amount
         recipient_account.balance+=amount

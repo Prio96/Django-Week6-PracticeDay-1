@@ -166,13 +166,10 @@ class MoneyTransferView(LoginRequiredMixin, CreateView):
         return kwargs
     
     def form_valid(self, form):
-        try:
-            # self.object=form.save()
-            messages.success(self.request,f"${form.cleaned_data.get('amount')} has been transferred successfully to {form.cleaned_data.get('account_number')}.")
-            return super().form_valid(form)
-        except ValueError as e:
-            messages.error(self.request, str(e))
-            return self.form_invalid(form)
+        # self.object=form.save()
+        messages.success(self.request,f"${form.cleaned_data.get('amount')} has been transferred successfully to {form.cleaned_data.get('account_number')}.")
+        return super().form_valid(form)
+
 
         
                 

@@ -8,9 +8,9 @@
 </head>
 <body class="bg-indigo-600">
     {% include 'navbar.html' %}
+    {% include 'messages.html' %}
     {% block body %}
         <div class="lg:container lg:mx-auto" id="main">
-            {% include 'messages.html' %}
             {% block content %}
             {% endblock %}
         </div>
